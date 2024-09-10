@@ -153,6 +153,17 @@ const configureInterruptHandler = gpio => {
   }
 };
 
+const getGpioAddress = (gpio) => {
+  const gpioDB = fs.readFileSync("/sys/kernel/debug/gpio", "utf8");
+  const re = new RegExp("gpio-(\\d+).+GPIO"+gpio);
+
+  const address = gpioDB.match(re);
+  if(address == null){
+    return -1;
+  }
+  return parseInt(address[1]);
+}
+
 class Gpio {
   constructor(gpio, direction, edge, options) {
     if (typeof edge === 'object' && !options) {
@@ -162,7 +173,7 @@ class Gpio {
 
     options = options || {};
 
-    this._gpio = gpio;
+    this._gpio = getGpioAddress(gpio);
     this._gpioPath = GPIO_ROOT_PATH + 'gpio' + this._gpio + '/';
     this._debounceTimeout = options.debounceTimeout || 0;
     this._readBuffer = Buffer.alloc(16);
